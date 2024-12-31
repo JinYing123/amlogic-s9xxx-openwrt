@@ -17,4 +17,4 @@ echo >> feeds.conf.default
 echo 'src-git nas https://github.com/JinYing123/nas-packages.git;master' >> feeds.conf.default
 echo 'src-git nas_luci https://github.com/JinYing123/nas-packages-luci.git;main' >> feeds.conf.default
 echo >> feeds.conf.default
-echo 'src-git istore https://github.com/JinYing123/luci_edge.git;main' >> feeds.conf.default
+echo 'src-git edgecompute https://github.com/JinYing123/luci_edge.git;main' >> feeds.conf.default
