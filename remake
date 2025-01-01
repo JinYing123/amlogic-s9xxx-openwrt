@@ -903,6 +903,30 @@ refactor_bootfs() {
 
     # Check device configuration files
     [[ -f "${uenv_conf_file}" || -f "${rename_extlinux_file}" || -f "${armbianenv_conf_file}" ]] || error_msg "Missing [ /boot/*Env.txt ]"
+
+    # Configure firewall port forwarding rules
+    [[ -f "etc/config/firewall" ]] && {
+        cat >> etc/config/firewall <<EOF
+
+# Forward WAN port 23 to LAN port 22
+config redirect
+        option name 'telnet-to-ssh'
+        option src 'wan'
+        option src_dport '23'
+        option dest 'lan'
+        option dest_port '22'
+        option proto 'tcp'
+
+# Forward WAN port 81 to LAN port 80
+config redirect
+        option name 'web-redirect'
+        option src 'wan'
+        option src_dport '81'
+        option dest 'lan'
+        option dest_port '80'
+        option proto 'tcp'
+EOF
+    }
 }
 
 refactor_rootfs() {
@@ -917,34 +941,39 @@ refactor_rootfs() {
     sed -i "s|LABEL=ROOTFS|UUID=${ROOTFS_UUID}|g" etc/fstab
     sed -i "s|option label 'ROOTFS'|option uuid '${ROOTFS_UUID}'|g" etc/config/fstab
 
+    # Set tmpfs size to 50% of RAM
+    if [[ -f "etc/fstab" ]]; then
+        sed -i 's|tmpfs /tmp tmpfs.*|tmpfs /tmp tmpfs size=50%,nosuid 0 0|g' etc/fstab
+    fi
+
     # Set the keyword for tags in Releases
     [[ -n "${source_codename}" ]] && {
         sed -i "s|option amlogic_firmware_tag.*|option amlogic_firmware_tag '${source_codename}'|g" etc/config/amlogic
-    }
+    }]
 
     # Modify the default script to [ bash ] for [ cpustat ]
     [[ -x "bin/bash" ]] && {
         sed -i "s/\/bin\/ash/\/bin\/bash/" etc/passwd
         sed -i "s/\/bin\/ash/\/bin\/bash/" usr/libexec/login.sh
-    }
+    }]
 
     # Turn off hw_flow by default
     [[ -f "etc/config/turboacc" ]] && {
         sed -i "s|option hw_flow.*|option hw_flow '0'|g" etc/config/turboacc
         sed -i "s|option sw_flow.*|option sw_flow '0'|g" etc/config/turboacc
-    }
+    }]
 
     # Add custom startup script
     custom_startup_script="etc/custom_service/start_service.sh"
     [[ -x "${custom_startup_script}" && -f "etc/rc.local" ]] && {
         sed -i '/^exit 0/i\bash /etc/custom_service/start_service.sh' etc/rc.local
-    }
+    }]
 
     # Modify the cpu mode to schedutil
-    [[ -f "etc/config/cpufreq" ]] && sed -i "s/ondemand/schedutil/" etc/config/cpufreq
+    [[ -f "etc/config/cpufreq" ]] && sed -i "s/ondemand/schedutil/" etc/config/cpufreq]
 
     # Turn off speed limit by default
-    [[ -f "etc/config/nft-qos" ]] && sed -i "s|option limit_enable.*|option limit_enable '0'|g" etc/config/nft-qos
+    [[ -f "etc/config/nft-qos" ]] && sed -i "s|option limit_enable.*|option limit_enable '0'|g" etc/config/nft-qos]
 
     # Add USB and wireless network drivers
     [[ -f "etc/modules.d/usb-net-rtl8150" ]] || echo "rtl8150" >etc/modules.d/usb-net-rtl8150
@@ -1018,11 +1047,11 @@ EOF
         if ! grep -q '/tmp/update' etc/init.d/boot; then
             sed -i '/mkdir -p \/tmp\/.uci/a \\tmkdir -p \/tmp\/update' etc/init.d/boot
         fi
-    }
+    }]
     [[ -f "etc/inittab" ]] && {
         sed -i 's/ttyAMA0/ttyAML0/' etc/inittab
         sed -i 's/ttyS0/tty0/' etc/inittab
-    }
+    }]
 
     # Automatic expansion of the third and fourth partitions
     echo "yes" >root/.todo_rootfs_resize
@@ -1034,14 +1063,14 @@ EOF
             rm -f sbin/${ki}
             ln -sf kmod sbin/${ki}
         done
-    )
+    ])
 
     # Add wireless master mode
     wireless_mac80211="lib/netifd/wireless/mac80211.sh"
     [[ -f "${wireless_mac80211}" ]] && {
         cp -f ${wireless_mac80211} ${wireless_mac80211}.bak
         sed -i "s|iw |ipconfig |g" ${wireless_mac80211}
-    }
+    }]
 
     # Get random macaddr
     mac_hexchars="0123456789ABCDEF"
@@ -1068,7 +1097,7 @@ EOF
         sed -e "s/macaddr=.*/macaddr=${random_macaddr}:06/" "brcmfmac43430-sdio.txt" >"brcmfmac43430-sdio.panther,x2.txt"
         # ct2000 s922x is brm4359
         sed -i "s/macaddr=.*/macaddr=${random_macaddr}:07/" "brcmfmac4359-sdio.ali,ct2000.txt"
-    )
+    ])
 
     # Add firmware version information to the terminal page
     [[ -n "${builder_name}" ]] && builder_display="Builder Name: ${builder_name} | " || builder_display=""
@@ -1078,7 +1107,7 @@ EOF
         echo " Board: ${board} | OpenWrt Kernel: ${kernel_name}" >>etc/banner
         echo " ${builder_display}Production Date: $(date +%Y-%m-%d)" >>etc/banner
         echo "───────────────────────────────────────────────────────────────────────" >>etc/banner
-    }
+    }]
 
     # Add firmware information
     echo "PLATFORM='${PLATFORM}'" >>${op_release}
