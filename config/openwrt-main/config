@@ -5193,13 +5193,13 @@ CONFIG_PACKAGE_luci-mod-system=y
 # 3. Applications
 #
 #nas
-CONFIG_PACKAGE_luci-app-ddnsto=y
-CONFIG_PACKAGE_luci-app-diskman=y
-CONFIG_PACKAGE_luci-app-istorex=y
-CONFIG_PACKAGE_luci-app-linkease=y
-CONFIG_PACKAGE_luci-app-quickstart=y
-CONFIG_PACKAGE_luci-app-unishare=y
-CONFIG_PACKAGE_luci-nginxer=y
+#CONFIG_PACKAGE_luci-app-ddnsto=y
+#CONFIG_PACKAGE_luci-app-diskman=y
+#CONFIG_PACKAGE_luci-app-istorex=y
+#CONFIG_PACKAGE_luci-app-linkease=y
+#CONFIG_PACKAGE_luci-app-quickstart=y
+#CONFIG_PACKAGE_luci-app-unishare=y
+#CONFIG_PACKAGE_luci-nginxer=y
 #nas
 
 #edge
